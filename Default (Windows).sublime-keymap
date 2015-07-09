@@ -6,4 +6,6 @@
 	{ "keys": [ "escape", "b", "backspace" ], "command": "drd_bookmark_clear_all" },
 	{ "keys": [ "ctrl+f2", "backspace" ], "command": "drd_bookmark_clear_all" },
 	{ "keys": [ "ctrl+f2", "enter" ], "command": "drd_bookmark_list" },
+	{ "keys": [ "escape", "b", "enter" ], "command": "drd_bookmark_list" },
+	{ "keys": [ "escape", "b", "r", "<character>" ], "command": "drd_bookmark_remove" },
 ]

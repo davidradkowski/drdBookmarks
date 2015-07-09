@@ -1,6 +1,7 @@
 import sublime, sublime_plugin
 from collections import OrderedDict
 from os.path import basename
+from pprint import pprint as pp
 
 class drdBkmarksClass( OrderedDict ):
 
@@ -17,7 +18,9 @@ class drdBkmarksClass( OrderedDict ):
 				for v in views:
 					v.erase_regions( name )
 					break
-		mark = view.sel()[ 0 ]
+		mark1 = view.line( view.sel()[ 0 ] )
+		mark2 = view.word( mark1.a )
+		mark = sublime.Region( mark2.b,  mark1.b )
 		
 		self[ name ] = ( view.id(), b, view.substr( view.line( mark ) ), basename( view.file_name() ) )
 		return ( name, mark )
@@ -32,12 +35,16 @@ class DrdBookmarkSet( sublime_plugin.TextCommand ):
 	def run(self, edit, **args ):
 		b = args.get( 'character', '.' )
 		( name, mark ) = drdBookmarks.setB( b, self.view )
-		self.view.add_regions( name, [ mark ], 'mark', 'bookmark', sublime.HIDDEN )
+		self.view.add_regions( name, [ mark ], 'mark', 'bookmark', sublime.PERSISTENT | sublime.DRAW_NO_OUTLINE )
 		
 class DrdBookmarkGoto( sublime_plugin.TextCommand ):
 	def run( self, edit, **args ):
 		b = args.get( 'character', '.' )
-		( name, ( view_id, b, line, file_name ) ) = drdBookmarks.getB( b )
+		try:
+			( name, ( view_id, b, line, file_name ) ) = drdBookmarks.getB( b )
+		except:
+			sublime.status_message( 'Bookmark `{}` not found!'.format( b ) )
+			return
 		if view_id == None:
 			sublime.status_message( 'Bookmark `{}` not found!'.format( b ) )
 		else:
@@ -47,10 +54,29 @@ class DrdBookmarkGoto( sublime_plugin.TextCommand ):
 						region = v.get_regions( name )
 						if region:
 							v.sel().clear()
-							v.sel().add( region[ 0 ] )
+							v.sel().add( region[ 0 ].a )
 							v.show( region[ 0 ] )
 							w.focus_view( v )
 							return
+			else:
+				sublime.status_message( 'Bookmark `{}` not found!'.format( b ) )
+
+class DrdBookmarkRemove( sublime_plugin.TextCommand ):
+	def run( self, edit, **args ):
+		b = args.get( 'character', '.' )
+		try:
+			( name, ( view_id, b, line, file_name ) ) = drdBookmarks.getB( b )
+		except:
+			sublime.status_message( 'Bookmark `{}` not found!'.format( b ) )
+			return
+		if view_id == None:
+			sublime.status_message( 'Bookmark `{}` not found!'.format( b ) )
+		else:
+			for w in sublime.windows():
+				for v in w.views():
+					if v.id() == view_id:
+						v.erase_regions( name )
+						del drdBookmarks[ name ]
 			else:
 				sublime.status_message( 'Bookmark `{}` not found!'.format( b ) )
 
