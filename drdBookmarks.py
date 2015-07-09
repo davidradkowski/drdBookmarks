@@ -1,9 +1,8 @@
 import sublime, sublime_plugin
 from collections import OrderedDict
 from os.path import basename
-from pprint import pprint as pp
 
-class drdBkmarksClass( OrderedDict ):
+class drdBkmarksClass( OrderedDict, sublime_plugin.EventListener ):
 
 	@staticmethod
 	def name( b ):
@@ -28,6 +27,13 @@ class drdBkmarksClass( OrderedDict ):
 	def getB( self, b ):
 		name = drdBkmarksClass.name( b )
 		return ( name, self.get( name, None ) )
+		
+	def on_pre_close( self, view ) :
+		for ( name, ( view_id, b, line, file_name ) ) in drdBookmarks.items():
+			if view.id() == view_id:
+				view.erase_regions( name )	
+				del drdBookmarks[ name ]
+		return	
 		
 drdBookmarks = drdBkmarksClass()
 
